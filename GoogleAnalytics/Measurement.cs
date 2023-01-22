@@ -105,6 +105,24 @@ namespace GoogleAnalytics
         [DataMember(Name = "params")]
         public Dictionary<string, object> Params = new Dictionary<string, object>();
 
+        //Todo RoS:
+        //It seems we somehow need to:
+        //-generate ga_session_id and ga_session_number
+        //-and pass with all events
+        //See https://support.google.com/analytics/answer/9234069#session_start
+        //"A session ID and session number are generated automatically with each session and associated with each event in the session."
+        public string SessionId
+        {
+            get => this.GetParam("ga_session_id");
+            set => this.SetParam("ga_session_id", value);
+        }
+
+        public string SessionNumber
+        {
+            get => this.GetParam("ga_session_number");
+            set => this.SetParam("ga_session_number", value);
+        }
+
         protected string GetParam(string name)
         {
             if (this.Params.TryGetValue(name, out object value) && value is string s)
@@ -142,10 +160,6 @@ namespace GoogleAnalytics
     [DataContract]
     public class SessionStartMeasurement : Measurement
     {
-        //Todo RoS:
-        //It appears we somehow need add and handle ga_session_id and ga_session_number
-        //See https://support.google.com/analytics/answer/9234069#session_start
-        //"A session ID and session number are generated automatically with each session and associated with each event in the session."
         public SessionStartMeasurement()
         {
             this.Name = "session_start";

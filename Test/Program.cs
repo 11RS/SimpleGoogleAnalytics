@@ -26,7 +26,7 @@ namespace Test
             string trackingId = args[0];
             string apiSecret = args[1];
             string clientId = args[2];
-            
+
             var analytics = new Analytics()
             {
                 MeasurementId = trackingId,
@@ -36,17 +36,28 @@ namespace Test
 
             for (var iSession = 1; iSession <= Sessions; iSession++)
             {
-                var s = new SessionStartMeasurement();
-                await ProcessMeasurement(analytics, s);
+                //Todo RoS:
+                //It seems we somehow need to:
+                //-generate ga_session_id and ga_session_number
+                //-and pass with all events
+                var sessionId = Guid.NewGuid().ToString();
+
+                var s = new SessionStartMeasurement()
+                {
+                    SessionId = sessionId,
+                    SessionNumber = iSession.ToString(),
+                };
+
+                await ProcessMeasurement(analytics, s, s);
 
                 for (var pageNr = 1; pageNr <= Pages; pageNr++)
                 {
-                    await EmulatePageInteractions(analytics, pageNr);
+                    await EmulatePageInteractions(analytics, s, pageNr);
                 }
             }
         }
 
-        private static async Task EmulatePageInteractions(Analytics analytics, int pageNr)
+        private static async Task EmulatePageInteractions(Analytics analytics, SessionStartMeasurement sessionStart, int pageNr)
         {
             var pv = new PageMeasurement()
             {
@@ -55,7 +66,7 @@ namespace Test
                 HostName = "www.test99.ch",
                 UserAgent = "Target"
             };
-            await ProcessMeasurement(analytics, pv);
+            await ProcessMeasurement(analytics, sessionStart, pv);
 
             for (var eventNr = 1; eventNr <= Events; eventNr++)
             {
@@ -66,15 +77,23 @@ namespace Test
                     Result = "passed",
                     Bugs = 0,
                 };
-                await ProcessMeasurement(analytics, m);
+                await ProcessMeasurement(analytics,sessionStart , m);
             }
         }
 
-        private static async Task ProcessMeasurement(Analytics analytics, Measurement s)
+        private static async Task ProcessMeasurement(Analytics analytics, SessionStartMeasurement sessionStart, Measurement s)
         {
             //Todo RoS: ValidateMeasurements failed posting more than one event
             //So we send them one by one for now
             analytics.Events.Add(s);
+
+            //Todo RoS: doesn't work - validation fails
+            //foreach(var ev in analytics.Events)
+            //{
+            //    ev.SessionId = sessionStart.SessionId;
+            //    ev.SessionNumber = sessionStart.SessionNumber;
+            //}
+
             await ProcessMeasurement(analytics);
             analytics.Events.Clear();
         }
@@ -89,8 +108,7 @@ namespace Test
                     Console.WriteLine("{0}: {1}", error.ValidationCode, error.Description);
                 }
             }
-            //Todo RoS: skipping failed validation for now, to try out session_start (currently fails)
-            //else
+            else
             {
                 await HttpProtocol.PostMeasurements(analytics);
                 Console.WriteLine("measurement sent!!");
