@@ -40,7 +40,8 @@ namespace Test
                 //It seems we somehow need to:
                 //-generate ga_session_id and ga_session_number
                 //-and pass with all events
-                var sessionId = Guid.NewGuid().ToString();
+
+                var sessionId = DateTime.Now.ToString("yyyyMMddHHmmssffff");
 
                 var s = new SessionStartMeasurement()
                 {
@@ -87,12 +88,14 @@ namespace Test
             //So we send them one by one for now
             analytics.Events.Add(s);
 
-            //Todo RoS: doesn't work - validation fails
-            //foreach(var ev in analytics.Events)
-            //{
-            //    ev.SessionId = sessionStart.SessionId;
-            //    ev.SessionNumber = sessionStart.SessionNumber;
-            //}
+            //Todo RoS: validation fails, maybe nevertheless tracked?
+            //ValidateMeasurements returns: "Unable to parse Measurement Protocol JSON payload. extraneous characters after end of JSON object"
+            //See Raw post in fiddler
+            foreach (var ev in analytics.Events)
+            {
+                ev.SessionId = sessionStart.SessionId;
+                ev.SessionNumber = sessionStart.SessionNumber;
+            }
 
             await ProcessMeasurement(analytics);
             analytics.Events.Clear();
@@ -108,7 +111,8 @@ namespace Test
                     Console.WriteLine("{0}: {1}", error.ValidationCode, error.Description);
                 }
             }
-            else
+            //Todo RoS: anyways track - test only
+            //else
             {
                 await HttpProtocol.PostMeasurements(analytics);
                 Console.WriteLine("measurement sent!!");
