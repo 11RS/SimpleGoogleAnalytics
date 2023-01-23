@@ -11,13 +11,13 @@ namespace Test
         private const int Sessions = 2;
         private const int Pages = 2;
         private const int Events = 2;
+        private const bool PostImmediately=true;
 
-        static async Task Main(string[] args)
+        static void Main(string[] args)
         {
             if (args.Length < 3)
             {
                 Console.WriteLine("Usage Test <Google Analytics Measurement Id> <Api Secret> <clientId>");
-                return;
             }
 
             Console.WriteLine("Please adjust launchSettings.json for you own needs!{0} Close this window if not yet done. {1} Press return to continue",Environment.NewLine, Environment.NewLine);
@@ -38,8 +38,7 @@ namespace Test
             for (var sessionNr = 1; sessionNr <= Sessions; sessionNr++)
             {
                 EmulateSession(analytics, sessionNr);
-                await PostMeasurements(analytics);
-                analytics.Events.Clear();
+                PostMeasurements(analytics).Wait();
             }
         }
 
@@ -86,25 +85,27 @@ namespace Test
                 };
                 AddMeasurement(analytics, sessionStart , m);
             }
-
-            //In case you want to post after every page:
-            //PostMeasurements(analytics).Wait();
-            //analytics.Events.Clear();
         }
 
         private static void AddMeasurement(Analytics analytics, SessionStartMeasurement sessionStart, Measurement s)
         {
+            s.SessionId = sessionStart.SessionId;
+            s.SessionNumber = sessionStart.SessionNumber; 
+            
             analytics.Events.Add(s);
 
-            foreach (var ev in analytics.Events)
+            if (PostImmediately)
             {
-                ev.SessionId = sessionStart.SessionId;
-                ev.SessionNumber = sessionStart.SessionNumber;
+                PostMeasurements(analytics).Wait();
             }
         }
 
+
         private static async Task PostMeasurements(Analytics analytics)
         {
+            if (analytics.Events.Count == 0)
+                return;
+
             var errors = await HttpProtocol.ValidateMeasurements(analytics);
             if (errors.ValidationMessages?.Length > 0)
             {
@@ -119,6 +120,8 @@ namespace Test
                 await HttpProtocol.PostMeasurements(analytics);
                 Console.WriteLine("measurement sent!!");
             }
+
+            analytics.Events.Clear();
         }
     }
 }
