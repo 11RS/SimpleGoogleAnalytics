@@ -46,11 +46,11 @@ namespace Test
         {
             //-generate ga_session_id and ga_session_number
             //-and pass with all events
-            var sessionId = DateTime.Now.ToString("yyyyMMddHHmmssffff");
+            var sessionId = DateTimeOffset.Now.ToUnixTimeSeconds();
 
             var s = new SessionStartMeasurement()
             {
-                SessionId = sessionId,
+                SessionId = sessionId.ToString(),
                 SessionNumber = iSession.ToString(),
             };
 
