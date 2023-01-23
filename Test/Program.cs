@@ -35,9 +35,9 @@ namespace Test
                 ClientId = clientId
             };
 
-            for (var iSession = 1; iSession <= Sessions; iSession++)
+            for (var sessionNr = 1; sessionNr <= Sessions; sessionNr++)
             {
-                EmulateSession(analytics, iSession);
+                EmulateSession(analytics, sessionNr);
                 await PostMeasurements(analytics);
                 analytics.Events.Clear();
             }
@@ -55,8 +55,10 @@ namespace Test
                 SessionNumber = iSession.ToString(),
             };
 
-            //Todo: Maybe we should not send session_start?
-            //AddMeasurement(analytics, s, s);
+            //Todo:
+            //Posting session_start results in validation error: "valid NAME_RESERVED: Event at index: [0] has name [session_start] which is reserved."
+            //Maybe we should not send session_start?
+            AddMeasurement(analytics, s, s);
 
             for (var pageNr = 1; pageNr <= Pages; pageNr++)
             {
@@ -84,6 +86,10 @@ namespace Test
                 };
                 AddMeasurement(analytics, sessionStart , m);
             }
+
+            //In case you want to post after every page:
+            //PostMeasurements(analytics).Wait();
+            //analytics.Events.Clear();
         }
 
         private static void AddMeasurement(Analytics analytics, SessionStartMeasurement sessionStart, Measurement s)
