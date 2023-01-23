@@ -1,6 +1,7 @@
 ﻿using GoogleAnalytics;
 using System;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace Test
@@ -36,29 +37,34 @@ namespace Test
 
             for (var iSession = 1; iSession <= Sessions; iSession++)
             {
-                //Todo RoS:
-                //It seems we somehow need to:
-                //-generate ga_session_id and ga_session_number
-                //-and pass with all events
-
-                var sessionId = DateTime.Now.ToString("yyyyMMddHHmmssffff");
-
-                var s = new SessionStartMeasurement()
-                {
-                    SessionId = sessionId,
-                    SessionNumber = iSession.ToString(),
-                };
-
-                await ProcessMeasurement(analytics, s, s);
-
-                for (var pageNr = 1; pageNr <= Pages; pageNr++)
-                {
-                    await EmulatePageInteractions(analytics, s, pageNr);
-                }
+                EmulateSession(analytics, iSession);
+                await PostMeasurements(analytics);
+                analytics.Events.Clear();
             }
         }
 
-        private static async Task EmulatePageInteractions(Analytics analytics, SessionStartMeasurement sessionStart, int pageNr)
+        private static void EmulateSession(Analytics analytics, int iSession)
+        {
+            //-generate ga_session_id and ga_session_number
+            //-and pass with all events
+            var sessionId = DateTime.Now.ToString("yyyyMMddHHmmssffff");
+
+            var s = new SessionStartMeasurement()
+            {
+                SessionId = sessionId,
+                SessionNumber = iSession.ToString(),
+            };
+
+            //Todo: Maybe we should not send session_start?
+            //AddMeasurement(analytics, s, s);
+
+            for (var pageNr = 1; pageNr <= Pages; pageNr++)
+            {
+                EmulatePageInteractions(analytics, s, pageNr);
+            }
+        }
+
+        private static void EmulatePageInteractions(Analytics analytics, SessionStartMeasurement sessionStart, int pageNr)
         {
             var pv = new PageMeasurement()
             {
@@ -67,41 +73,31 @@ namespace Test
                 HostName = "www.test99.ch",
                 UserAgent = "Target"
             };
-            await ProcessMeasurement(analytics, sessionStart, pv);
+            AddMeasurement(analytics, sessionStart, pv);
 
             for (var eventNr = 1; eventNr <= Events; eventNr++)
             {
                 var m = new TestEventMeasurement()
                 {
                     Action = $"Action {pageNr}.{eventNr}",
-                    TestTime = DateTime.Now.Ticks,
                     Result = "passed",
-                    Bugs = 0,
                 };
-                await ProcessMeasurement(analytics,sessionStart , m);
+                AddMeasurement(analytics, sessionStart , m);
             }
         }
 
-        private static async Task ProcessMeasurement(Analytics analytics, SessionStartMeasurement sessionStart, Measurement s)
+        private static void AddMeasurement(Analytics analytics, SessionStartMeasurement sessionStart, Measurement s)
         {
-            //Todo RoS: ValidateMeasurements failed posting more than one event
-            //So we send them one by one for now
             analytics.Events.Add(s);
 
-            //Todo RoS: validation fails, maybe nevertheless tracked?
-            //ValidateMeasurements returns: "Unable to parse Measurement Protocol JSON payload. extraneous characters after end of JSON object"
-            //See Raw post in fiddler
             foreach (var ev in analytics.Events)
             {
                 ev.SessionId = sessionStart.SessionId;
                 ev.SessionNumber = sessionStart.SessionNumber;
             }
-
-            await ProcessMeasurement(analytics);
-            analytics.Events.Clear();
         }
 
-        private static async Task ProcessMeasurement(Analytics analytics)
+        private static async Task PostMeasurements(Analytics analytics)
         {
             var errors = await HttpProtocol.ValidateMeasurements(analytics);
             if (errors.ValidationMessages?.Length > 0)

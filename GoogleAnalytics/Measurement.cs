@@ -327,17 +327,5 @@ namespace GoogleAnalytics
             get => this.GetParam("value");
             set => this.SetParam("value", value);
         }
-
-        public int Bugs
-        {
-            get => (int)this.GetDoubleParam("bugs");
-            set => this.SetDoubleParam("bugs", value);
-        }
-
-        public double TestTime
-        {
-            get => (int)this.GetDoubleParam("test_time");
-            set => this.SetDoubleParam("test_time", value);
-        }
     }
 }
