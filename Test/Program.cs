@@ -21,6 +21,7 @@ namespace Test
             Console.WriteLine("Please adjust launchSettings.json for you own needs!{0} Close this window if not yet done. {1} Press return to continue",Environment.NewLine, Environment.NewLine);
             Console.ReadLine();
 
+
             string trackingId = args[0];
             string apiSecret = args[1];
             string clientId = args[2];
@@ -34,15 +35,19 @@ namespace Test
 
             for (var sessionNr = 1; sessionNr <= Sessions; sessionNr++)
             {
-                EmulateSession(analytics);
+                EmulateSession(analytics, sessionNr);
                 PostMeasurements(analytics).Wait();
             }
         }
 
-        private static void EmulateSession(Analytics analytics)
+        private static void EmulateSession(Analytics analytics, int iSession)
         {
-            //generate SessionId (ga_session_id) and pass with all events
-            var sessionInfo = new SessionInfo { SessionId = DateTimeOffset.Now.ToUnixTimeSeconds().ToString() };
+            //generate ga_session_id and ga_session_number and pass with all events
+            var sessionInfo = new SessionInfo
+            {
+                SessionId = DateTimeOffset.Now.ToUnixTimeSeconds().ToString(),
+                SessionNumber = iSession.ToString(),
+            };
 
             for (var pageNr = 1; pageNr <= Pages; pageNr++)
             {
@@ -50,6 +55,7 @@ namespace Test
             }
         }
 
+        
         private static void EmulatePageInteractions(Analytics analytics, SessionInfo sessionInfo, int pageNr)
         {
             var pv = new PageMeasurement()
@@ -72,9 +78,10 @@ namespace Test
             }
         }
 
-        private static void AddMeasurement(Analytics analytics, SessionInfo sessionInfo, Measurement s)
+        private static void AddMeasurement(Analytics analytics, SessionInfo sessionStart, Measurement s)
         {
-            s.SessionId = sessionInfo.SessionId;
+            s.SessionId = sessionStart.SessionId;
+            s.SessionNumber = sessionStart.SessionNumber; 
             
             analytics.Events.Add(s);
 
@@ -83,6 +90,7 @@ namespace Test
                 PostMeasurements(analytics).Wait();
             }
         }
+
 
         private static async Task PostMeasurements(Analytics analytics)
         {
@@ -110,5 +118,7 @@ namespace Test
     public class SessionInfo
     {
         public string SessionId { get; set; }
+        public string SessionNumber { get; set; }
     }
+
 }
