@@ -1,7 +1,5 @@
 ﻿using GoogleAnalytics;
 using System;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Threading.Tasks;
 
 namespace Test
@@ -44,28 +42,16 @@ namespace Test
 
         private static void EmulateSession(Analytics analytics, int iSession)
         {
-            //-generate ga_session_id and ga_session_number
-            //-and pass with all events
-            var sessionId = DateTimeOffset.Now.ToUnixTimeSeconds();
-
-            var s = new SessionStartMeasurement()
-            {
-                SessionId = sessionId.ToString(),
-                SessionNumber = iSession.ToString(),
-            };
-
-            //Todo:
-            //Posting session_start results in validation error: "valid NAME_RESERVED: Event at index: [0] has name [session_start] which is reserved."
-            //Maybe we should not send session_start?
-            AddMeasurement(analytics, s, s);
+            //generate session_id and pass with all events
+            var sessionInfo = new SessionInfo { SessionId = DateTimeOffset.Now.ToUnixTimeSeconds().ToString() };
 
             for (var pageNr = 1; pageNr <= Pages; pageNr++)
             {
-                EmulatePageInteractions(analytics, s, pageNr);
+                EmulatePageInteractions(analytics, sessionInfo, pageNr);
             }
         }
-
-        private static void EmulatePageInteractions(Analytics analytics, SessionStartMeasurement sessionStart, int pageNr)
+        
+        private static void EmulatePageInteractions(Analytics analytics, SessionInfo sessionInfo, int pageNr)
         {
             var pv = new PageMeasurement()
             {
@@ -74,7 +60,7 @@ namespace Test
                 HostName = "www.test99.ch",
                 UserAgent = "Target"
             };
-            AddMeasurement(analytics, sessionStart, pv);
+            AddMeasurement(analytics, sessionInfo, pv);
 
             for (var eventNr = 1; eventNr <= Events; eventNr++)
             {
@@ -83,14 +69,13 @@ namespace Test
                     Action = $"Action {pageNr}.{eventNr}",
                     Result = "passed",
                 };
-                AddMeasurement(analytics, sessionStart , m);
+                AddMeasurement(analytics, sessionInfo , m);
             }
         }
 
-        private static void AddMeasurement(Analytics analytics, SessionStartMeasurement sessionStart, Measurement s)
+        private static void AddMeasurement(Analytics analytics, SessionInfo sessionStart, Measurement s)
         {
             s.SessionId = sessionStart.SessionId;
-            s.SessionNumber = sessionStart.SessionNumber; 
             
             analytics.Events.Add(s);
 
@@ -99,7 +84,6 @@ namespace Test
                 PostMeasurements(analytics).Wait();
             }
         }
-
 
         private static async Task PostMeasurements(Analytics analytics)
         {
@@ -114,8 +98,7 @@ namespace Test
                     Console.WriteLine("{0}: {1}", error.ValidationCode, error.Description);
                 }
             }
-            //Todo RoS: anyways track - test only
-            //else
+            else
             {
                 await HttpProtocol.PostMeasurements(analytics);
                 Console.WriteLine("measurement sent!!");
@@ -124,4 +107,10 @@ namespace Test
             analytics.Events.Clear();
         }
     }
+
+    public class SessionInfo
+    {
+        public string SessionId { get; set; }
+    }
+
 }

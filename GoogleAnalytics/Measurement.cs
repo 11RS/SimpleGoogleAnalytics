@@ -8,7 +8,6 @@ namespace GoogleAnalytics
     /// This class wraps the GA4 protocol payload.
     /// See https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference.
     /// </summary>
-    [KnownType(typeof(SessionStartMeasurement))]
     [KnownType(typeof(PageMeasurement))]
     [KnownType(typeof(EventMeasurement))]
     [KnownType(typeof(ExceptionMeasurement))]
@@ -73,6 +72,8 @@ namespace GoogleAnalytics
         public UserPropertyValue FrameworkVersion { get; set; }
         [DataMember(Name = "language")]
         public UserPropertyValue Language { get; set; }
+        [DataMember(Name = "country")]
+        public UserPropertyValue Country { get; set; }
     }
 
     [DataContract]
@@ -106,22 +107,10 @@ namespace GoogleAnalytics
         [DataMember(Name = "params")]
         public Dictionary<string, object> Params = new Dictionary<string, object>();
 
-        //Todo RoS:
-        //It seems we somehow need to:
-        //-generate ga_session_id and ga_session_number
-        //-and pass with all events
-        //See https://support.google.com/analytics/answer/9234069#session_start
-        //"A session ID and session number are generated automatically with each session and associated with each event in the session."
         public string SessionId
         {
-            get => this.GetParam("ga_session_id");
-            set => this.SetParam("ga_session_id", value);
-        }
-
-        public string SessionNumber
-        {
-            get => this.GetParam("ga_session_number");
-            set => this.SetParam("ga_session_number", value);
+            get => this.GetParam("session_id");
+            set => this.SetParam("session_id", value);
         }
 
         protected string GetParam(string name)
@@ -152,18 +141,6 @@ namespace GoogleAnalytics
         protected void SetDoubleParam(string name, double value)
         {
             this.Params[name] = value;
-        }
-    }
-
-    /// <summary>
-    /// A wrapper for the "session_start" measurement.
-    /// </summary>
-    [DataContract]
-    public class SessionStartMeasurement : Measurement
-    {
-        public SessionStartMeasurement()
-        {
-            this.Name = "session_start";
         }
     }
 
