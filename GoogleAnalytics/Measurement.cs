@@ -109,14 +109,14 @@ namespace GoogleAnalytics
         //"A session ID and session number are generated automatically with each session and associated with each event in the session."
         public string SessionId
         {
-            get => this.GetParam("ga_session_id");
-            set => this.SetParam("ga_session_id", value);
+            get => this.GetParam("session_id");
+            set => this.SetParam("session_id", value);
         }
 
         public string SessionNumber
         {
-            get => this.GetParam("ga_session_number");
-            set => this.SetParam("ga_session_number", value);
+            get => this.GetParam("session_number");
+            set => this.SetParam("session_number", value);
         }
 
         protected string GetParam(string name)
