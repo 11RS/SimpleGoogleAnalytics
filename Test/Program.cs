@@ -50,7 +50,6 @@ namespace Test
                 EmulatePageInteractions(analytics, sessionInfo, pageNr);
             }
         }
-
         
         private static void EmulatePageInteractions(Analytics analytics, SessionInfo sessionInfo, int pageNr)
         {
@@ -85,7 +84,6 @@ namespace Test
                 PostMeasurements(analytics).Wait();
             }
         }
-
 
         private static async Task PostMeasurements(Analytics analytics)
         {

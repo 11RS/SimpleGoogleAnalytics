@@ -107,8 +107,6 @@ namespace GoogleAnalytics
         [DataMember(Name = "params")]
         public Dictionary<string, object> Params = new Dictionary<string, object>();
 
-        //https://support.google.com/analytics/answer/9234069#session_start :
-        //"A session ID and session number are generated automatically with each session and associated with each event in the session."
         public string SessionId
         {
             get => this.GetParam("session_id");
