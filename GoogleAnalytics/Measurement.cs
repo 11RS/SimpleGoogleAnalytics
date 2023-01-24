@@ -72,6 +72,8 @@ namespace GoogleAnalytics
         public UserPropertyValue FrameworkVersion { get; set; }
         [DataMember(Name = "language")]
         public UserPropertyValue Language { get; set; }
+        [DataMember(Name = "country")]
+        public UserPropertyValue Country { get; set; }
     }
 
     [DataContract]
@@ -111,12 +113,6 @@ namespace GoogleAnalytics
         {
             get => this.GetParam("session_id");
             set => this.SetParam("session_id", value);
-        }
-
-        public string SessionNumber
-        {
-            get => this.GetParam("session_number");
-            set => this.SetParam("session_number", value);
         }
 
         protected string GetParam(string name)

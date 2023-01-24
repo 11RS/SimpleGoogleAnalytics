@@ -97,12 +97,18 @@ namespace GoogleAnalytics
             var arch = RuntimeInformation.OSArchitecture.ToString();
             client.DefaultRequestHeaders.Add("User-Agent", string.Format("Mozilla/5.0 ({0}; {1})", platform, arch));
             client.DefaultRequestHeaders.Add("Accept-Language", CultureInfo.CurrentCulture.Name);
+
+            var cultureInfo = CultureInfo.CurrentCulture;
+            var regionInfo = new RegionInfo(cultureInfo.LCID);
+            var country = regionInfo.TwoLetterISORegionName;//regionInfo.DisplayName;
+
             a.UserProperties = new UserProperties()
             {
                 FrameworkVersion = new UserPropertyValue(RuntimeInformation.FrameworkDescription),
                 Platform = new UserPropertyValue(platform),
                 PlatformVersion = new UserPropertyValue(RuntimeInformation.OSDescription),
-                Language = new UserPropertyValue(CultureInfo.CurrentCulture.Name)
+                Language = new UserPropertyValue(cultureInfo.Name),
+                Country = new UserPropertyValue(country),
             };
         }
 

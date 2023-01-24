@@ -42,12 +42,8 @@ namespace Test
 
         private static void EmulateSession(Analytics analytics, int iSession)
         {
-            //generate ga_session_id and ga_session_number and pass with all events
-            var sessionInfo = new SessionInfo
-            {
-                SessionId = DateTimeOffset.Now.ToUnixTimeSeconds().ToString(),
-                SessionNumber = iSession.ToString(),
-            };
+            //generate session_id and pass with all events
+            var sessionInfo = new SessionInfo { SessionId = DateTimeOffset.Now.ToUnixTimeSeconds().ToString() };
 
             for (var pageNr = 1; pageNr <= Pages; pageNr++)
             {
@@ -81,7 +77,6 @@ namespace Test
         private static void AddMeasurement(Analytics analytics, SessionInfo sessionStart, Measurement s)
         {
             s.SessionId = sessionStart.SessionId;
-            s.SessionNumber = sessionStart.SessionNumber; 
             
             analytics.Events.Add(s);
 
@@ -118,7 +113,6 @@ namespace Test
     public class SessionInfo
     {
         public string SessionId { get; set; }
-        public string SessionNumber { get; set; }
     }
 
 }
