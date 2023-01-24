@@ -8,6 +8,7 @@ namespace GoogleAnalytics
     /// This class wraps the GA4 protocol payload.
     /// See https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference.
     /// </summary>
+    [KnownType(typeof(SessionStartMeasurement))]
     [KnownType(typeof(PageMeasurement))]
     [KnownType(typeof(EventMeasurement))]
     [KnownType(typeof(ExceptionMeasurement))]
