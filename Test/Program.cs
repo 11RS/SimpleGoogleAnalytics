@@ -41,27 +41,22 @@ namespace Test
 
         private static void EmulateSession(Analytics analytics, int iSession)
         {
-            //-generate ga_session_id and ga_session_number
-            //-and pass with all events
+            //generate session_id and session_number and pass with all events
             var sessionId = DateTimeOffset.Now.ToUnixTimeSeconds();
 
-            var s = new SessionStartMeasurement()
+            var sessionInfo = new SessionInfo()
             {
                 SessionId = sessionId.ToString(),
                 SessionNumber = iSession.ToString(),
             };
 
-            //Posting session_start results in validation error: "valid NAME_RESERVED: Event at index: [0] has name [session_start] which is reserved."
-            //Maybe we should not send session_start?
-            //AddMeasurement(analytics, s, s);
-
             for (var pageNr = 1; pageNr <= Pages; pageNr++)
             {
-                EmulatePageInteractions(analytics, s, pageNr);
+                EmulatePageInteractions(analytics, sessionInfo, pageNr);
             }
         }
         
-        private static void EmulatePageInteractions(Analytics analytics, SessionStartMeasurement sessionInfo, int pageNr)
+        private static void EmulatePageInteractions(Analytics analytics, SessionInfo sessionInfo, int pageNr)
         {
             var pv = new PageMeasurement()
             {
@@ -83,10 +78,10 @@ namespace Test
             }
         }
 
-        private static void AddMeasurement(Analytics analytics, SessionStartMeasurement sessionStart, Measurement s)
+        private static void AddMeasurement(Analytics analytics, SessionInfo sessionInfo, Measurement s)
         {
-            s.SessionId = sessionStart.SessionId;
-            s.SessionNumber = sessionStart.SessionNumber;
+            s.SessionId = sessionInfo.SessionId;
+            s.SessionNumber = sessionInfo.SessionNumber;
 
             analytics.Events.Add(s);
 
@@ -117,5 +112,11 @@ namespace Test
 
             analytics.Events.Clear();
         }
+    }
+
+    public class SessionInfo
+    {
+        public string SessionId { get; set; }
+        public string SessionNumber { get; set; }
     }
 }
