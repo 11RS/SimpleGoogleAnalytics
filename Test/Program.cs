@@ -6,10 +6,10 @@ namespace Test
 {
     class Program
     {
-        private const int Sessions = 2;
+        private const int Sessions = 1;
         private const int Pages = 2;
-        private const int Events = 2;
-        private const bool PostImmediately=true;
+        private const int Events = 1;
+        private const bool PostImmediately=false;
 
         static void Main(string[] args)
         {
@@ -20,7 +20,6 @@ namespace Test
 
             Console.WriteLine("Please adjust launchSettings.json for you own needs!{0} Close this window if not yet done. {1} Press return to continue",Environment.NewLine, Environment.NewLine);
             Console.ReadLine();
-
 
             string trackingId = args[0];
             string apiSecret = args[1];
@@ -42,16 +41,27 @@ namespace Test
 
         private static void EmulateSession(Analytics analytics, int iSession)
         {
-            //generate session_id and pass with all events
-            var sessionInfo = new SessionInfo { SessionId = DateTimeOffset.Now.ToUnixTimeSeconds().ToString() };
+            //-generate ga_session_id and ga_session_number
+            //-and pass with all events
+            var sessionId = DateTimeOffset.Now.ToUnixTimeSeconds();
+
+            var s = new SessionStartMeasurement()
+            {
+                SessionId = sessionId.ToString(),
+                SessionNumber = iSession.ToString(),
+            };
+
+            //Posting session_start results in validation error: "valid NAME_RESERVED: Event at index: [0] has name [session_start] which is reserved."
+            //Maybe we should not send session_start?
+            //AddMeasurement(analytics, s, s);
 
             for (var pageNr = 1; pageNr <= Pages; pageNr++)
             {
-                EmulatePageInteractions(analytics, sessionInfo, pageNr);
+                EmulatePageInteractions(analytics, s, pageNr);
             }
         }
         
-        private static void EmulatePageInteractions(Analytics analytics, SessionInfo sessionInfo, int pageNr)
+        private static void EmulatePageInteractions(Analytics analytics, SessionStartMeasurement sessionInfo, int pageNr)
         {
             var pv = new PageMeasurement()
             {
@@ -73,10 +83,11 @@ namespace Test
             }
         }
 
-        private static void AddMeasurement(Analytics analytics, SessionInfo sessionStart, Measurement s)
+        private static void AddMeasurement(Analytics analytics, SessionStartMeasurement sessionStart, Measurement s)
         {
             s.SessionId = sessionStart.SessionId;
-            
+            s.SessionNumber = sessionStart.SessionNumber;
+
             analytics.Events.Add(s);
 
             if (PostImmediately)
@@ -107,10 +118,4 @@ namespace Test
             analytics.Events.Clear();
         }
     }
-
-    public class SessionInfo
-    {
-        public string SessionId { get; set; }
-    }
-
 }
